@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="supported-color-schemes" content="light dark">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&amp;display=swap" rel="stylesheet">
+    <title>Rock Paper Scissors</title>
+    <style>
+        :root {
+            --bodycolor: #000;
+            --bodybg: #fafafa;
+            --gamebg: #fff;
+            --gameshadow: #d9d9d9;
+            --disable: #bbb;
+            --blue: #007aff;
+            --green: #26d10fb4;
+            --red: #c70039;
+        }
+        @media (prefers-color-scheme: dark){
+            :root {
+                --bodycolor: #fff;
+                --bodybg: #222;
+                --gamebg: #212121;
+                --gameshadow: #0f0f0f;
+                --disable: #303030;
+                --green: #0f0;
+                --red: #f00;
+            }
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Avenir','Inter',sans-serif;
+        }
+        body {
+            color: var(--bodycolor);
+            background-color: var(--bodybg);
+            height: 700px;
+        }
+        #wrapper {
+            display: block;
+            padding: 0 10%;
+            text-align: center;
+        }
+        #header {
+            padding: 20px 0;
+        }
+        #init {
+            padding: 5px 40px;
+            margin-top: 50px;
+            border-radius: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            width: 150px;
+            color: var(--green);
+            background-color: var(--bodybg);
+            border: 2px solid var(--green);
+        }
+        #game {
+            background-color: var(--gamebg);
+            box-shadow: 5px 5px 10px var(--gameshadow);
+            border-radius: 40px;
+            height:500px;
+            display: none;
+            grid-template: repeat(2, 1fr) / repeat(2, 1fr);
+            position: relative;
+        }
+        #quit {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            height: 30px;
+            width: 30px;
+            cursor: pointer;
+        }
+        #choices {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #result {
+            grid-column: span 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #message {
+            box-shadow: 5px 5px 10px var(--gameshadow);
+            border-radius: 20px;
+            width: 200px;
+            height: 42px;
+        }
+        button {
+            width: 100px;
+            font-size: 18px;
+            margin: 10px 0;
+            cursor: pointer;
+            color: var(--blue);
+            background-color: var(--gamebg);
+            border: none;
+        }
+        button:disabled {
+            cursor: default;
+            color: var(--disable);
+        }
+        h1, p, h3 {
+            margin: 20px 0;
+        }
+        .green {
+            color: var(--green);
+        }
+        .red {
+            color: var(--red);
+        }
+        @media (max-width: 800px){
+            #game {
+                grid-template: repeat(3, 1fr) / 1fr;
+            }
+            #result {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <h1 id="header">Rock Paper Scissors</h1>
+        <button id="init">Start</button>
+        <div id="game">
+            <span id="quit" title="Quit Game">
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" stroke="var(--disable)" stroke-width="1">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </span>
+            <div id="player">
+                <p>What do you choose?</p>
+                <div id="choices">
+                    <button id="rock">Rock</button>
+                    <button id="paper">Paper</button>
+                    <button id="scissors">Scissors</button>
+                </div>
+            </div>
+            <div id="opponent">
+                <p>Your opponent chooses:</p>
+                <h2 id="oppChoice"></h2>
+            </div>
+            <div id="result">
+                <h1 id="message"></h1>
+                <button id="again" disabled>Play Again</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const init = document.querySelector('#init');
+        const game = document.querySelector('#game');
+        const quit = document.querySelector('#quit');
+        const rock = document.querySelector('#rock');
+        const paper = document.querySelector('#paper');
+        const scissors = document.querySelector('#scissors');
+        const oppChoice = document.querySelector('#oppChoice');
+        const message = document.querySelector('#message');
+        const againBtn = document.querySelector('#again');
+        const choice = ['Rock', 'Paper', 'Scissors'];
+        
+        init.addEventListener('click', () => {
+            game.style.display = 'grid';
+            init.remove();
+            startGame();
+        });
+
+        againBtn.addEventListener('click', () => {
+            rock.disabled = false;
+            paper.disabled = false;
+            scissors.disabled = false;
+            againBtn.disabled = true;
+            oppChoice.innerHTML = '';
+            message.innerText = '';
+            message.removeAttribute('class');
+        });
+
+        quit.addEventListener('click', () => location.reload());
+
+        function startGame(){
+            rock.addEventListener('click', () => set(choice[0]));
+            paper.addEventListener('click', () => set(choice[1]));
+            scissors.addEventListener('click', () => set(choice[2]));
+        }
+
+        function set(param){
+            const playerChoice = param;
+            const opp = opponent();
+            message.innerText = compare(playerChoice, opp);
+            if (message.innerText === 'You Won') message.classList.add('green');
+            if (message.innerText === 'You Lost') message.classList.add('red');
+            rock.disabled = true;
+            paper.disabled = true;
+            scissors.disabled = true;
+            againBtn.disabled = false;
+        }
+
+        function opponent(){
+            const randomChoice = choice[Math.floor(Math.random() * 3)];
+            oppChoice.innerHTML = randomChoice;
+            return randomChoice;
+        }
+
+        function compare(player, opp){
+            let result;
+            // player.rock
+            if (player === choice[0] && opp === choice[0]) result = 'Tied';
+            if (player === choice[0] && opp === choice[1]) result = 'You Lost';
+            if (player === choice[0] && opp === choice[2]) result = 'You Won';
+            // player.paper
+            if (player === choice[1] && opp === choice[0]) result = 'You Won';
+            if (player === choice[1] && opp === choice[1]) result = 'Tied';
+            if (player === choice[1] && opp === choice[2]) result = 'You Lost';
+            // player.scissor
+            if (player === choice[2] && opp === choice[0]) result = 'You Lost';
+            if (player === choice[2] && opp === choice[1]) result = 'You Won';
+            if (player === choice[2] && opp === choice[2]) result = 'Tied';
+            return result;
+        }
+    </script>
+</body>
+</html>

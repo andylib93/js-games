@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="supported-color-schemes" content="light dark">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&amp;display=swap" rel="stylesheet">
+    <title>Black Jack</title>
+    <style>
+        :root {
+            --bodycolor: #000;
+            --bodybg: #fafafa;
+            --gamebg: #fff;
+            --gameshadow: #d9d9d9;
+            --disable: #bbb;
+            --blue: #007aff;
+            --green: #26d10fb4;
+            --red: #c70039;
+
+            --cardWidth: 100px;
+            --cardHeight: calc(var(--cardWidth) * 1.33333);
+        }
+        @media (prefers-color-scheme: dark){
+            :root {
+                --bodycolor: #fff;
+                --bodybg: #222;
+                --gamebg: #212121;
+                --gameshadow: #0f0f0f;
+                --disable: #303030;
+                --green: #0f0;
+                --red: #f00;
+            }
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Avenir', 'Inter', sans-serif;
+        }
+        body {
+            color: var(--bodycolor);
+            background-color: var(--bodybg);
+            height: 900px;
+            text-align: center;
+        }
+        #wrapper {
+            display: block;
+            padding: 0 10%;
+            text-align: center;
+        }
+        #header {
+            padding: 20px 0;
+            text-shadow: 5px 5px 5px var(--gameshadow);
+        }
+        #init {
+            padding: 5px 40px;
+            margin-top: 50px;
+            border-radius: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            width: 150px;
+            color: var(--green);
+            background-color: var(--bodybg);
+            border: 2px solid var(--green);
+        }
+        #game {
+            background-color: var(--gamebg);
+            box-shadow: 5px 5px 10px var(--gameshadow);
+            border-radius: 40px;
+            height: 700px;
+            display: none;
+            grid-template: 2fr 1fr 2fr / 1fr;
+            position: relative;
+        }
+        #quit {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            height: 30px;
+            width: 30px;
+            cursor: pointer;
+        }
+        .cardPlace {
+            height: 150px;
+            width: 160px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .card {
+            height: var(--cardHeight);
+            width: var(--cardWidth);
+            background: var(--gamebg);
+            padding: 5px 5px 0 5px;
+            border-radius: 15px 15px 0 0;
+            border: 1px solid var(--bodycolor);
+            border-bottom: none;
+            position: absolute;
+        }
+        .border {
+            border-radius: 20px 20px 0 0;
+            border: 10px solid var(--gamebg);
+            border-bottom: none;
+        }
+        .border span {
+            float: left;
+        }
+        #backSide {
+            height: calc(var(--cardHeight) - 8px);
+            width: calc(var(--cardWidth) - 10px);
+            background: repeating-linear-gradient(45deg,var(--gamebg),var(--gamebg) 3px,#06f 2px,#06f 6px);
+        }
+        #content {
+            opacity: 0;
+        }
+        #controls, #player, #dealer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #buttonField {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #result {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #resMessage {
+            color: var(--green);
+            margin: 10px 0;
+        }
+        #playAgain {
+            display: none;
+        }
+        button {
+            width: 100px;
+            font-size: 18px;
+            margin: 10px 0;
+            cursor: pointer;
+            color: var(--blue);
+            background-color: var(--gamebg);
+            border: none;
+        }
+        button:disabled {
+            cursor: default;
+            color: var(--disable);
+        }
+        h1, p, h3 {
+            margin: 20px 0;
+        }
+        .green {
+            color: var(--green);
+        }
+        .red {
+            color: var(--red);
+        }
+        @keyframes turnCard {
+            0% { width: var(--cardWidth); }
+            10% { width: calc(var(--cardWidth) * 0.8) }
+            20% { width: calc(var(--cardWidth) * 0.6); }
+            30% { width: calc(var(--cardWidth) * 0.4); }
+            40% { width: calc(var(--cardWidth) * 0.2); }
+            50% { width: calc(var(--cardWidth) * 0); }
+            60% { width: calc(var(--cardWidth) * 0.2); }
+            70% { width: calc(var(--cardWidth) * 0.4); }
+            80% { width: calc(var(--cardWidth) * 0.6); }
+            90% { width: calc(var(--cardWidth) * 0.8); }
+            100% { width: var(--cardWidth); }
+        }
+        @keyframes textAppear {
+            0% { opacity: 0; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @media (max-width: 450px){
+            :root {
+                --cardWidth: 80px;
+            }
+            #wrapper {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <h1 id="header">
+            <span class="red">♥</span><span>♠</span> Black Jack <span>♣</span><span class="red">♦</span>
+        </h1>
+        <button id="init">Start</button>
+        <div id="game">
+            <span id="quit" title="Quit Game">
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" stroke="var(--disable)" stroke-width="1">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </span>
+            <div id="dealer">
+                <p>Dealer counts <span id="dealerCount"></span></p>
+                <div id="dealerCards" class="cardPlace">
+                    <div id="cardAnim" class="card">
+                        <div id="backSide" class="border">
+                            <span id="content"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="controls">
+                <div id="buttonField">
+                    <button id="hitBtn" disabled title="Another Card">Hit</button>
+                    <button id="standBtn" title="No Card">Stand</button>
+                </div>
+                <div id="result">
+                    <h2 id="resMessage"></h2>
+                    <button id="playAgain">Play Again</button>
+                </div>
+            </div>
+            <div id="player">
+                <p>You count <span id="playerCount"></span></p>
+                <div id="playerCards" class="cardPlace"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        'use strict';
+        
+        const init = document.querySelector('#init');
+        const quit = document.querySelector('#quit');
+        const game = document.querySelector('#game');
+        const dealerCards = document.querySelector('#dealerCards');
+        const playerCards = document.querySelector('#playerCards');
+        const dealerCount = document.querySelector('#dealerCount');
+        const playerCount = document.querySelector('#playerCount');
+        const hitBtn = document.querySelector('#hitBtn');
+        const standBtn = document.querySelector('#standBtn');
+        const btnControls = document.querySelector('#controls');
+        const resultField = document.querySelector('#result');
+        const resMessage = document.querySelector('#resMessage');
+        const playBtn = document.querySelector('#playAgain');
+        let [player, dealer] = [[],[]];
+        const cardDeck = [
+            '♥ A', '♥ K', '♥ Q', '♥ J', '♥ 10', '♥ 9', '♥ 8', '♥ 7', '♥ 6', '♥ 5', '♥ 4', '♥ 3', '♥ 2',
+            '♣ A', '♣ K', '♣ Q', '♣ J', '♣ 10', '♣ 9', '♣ 8', '♣ 7', '♣ 6', '♣ 5', '♣ 4', '♣ 3', '♣ 2',
+            '♠ A', '♠ K', '♠ Q', '♠ J', '♠ 10', '♠ 9', '♠ 8', '♠ 7', '♠ 6', '♠ 5', '♠ 4', '♠ 3', '♠ 2',
+            '♦ A', '♦ K', '♦ Q', '♦ J', '♦ 10', '♦ 9', '♦ 8', '♦ 7', '♦ 6', '♦ 5', '♦ 4', '♦ 3', '♦ 2',
+        ];
+        let dealerValue = {value: 0};
+        let playerValue = {value: 0};
+
+        init.addEventListener('click', () => {
+            game.style.display = 'grid';
+            init.remove();
+            startGame();
+        });
+
+        quit.addEventListener('click', () => location.reload());
+
+        hitBtn.addEventListener('click', () => pickAnotherCard());
+        
+        standBtn.addEventListener('click', () => dealerRound());
+
+        playBtn.addEventListener('click', () => restartRound());
+
+        function startGame(){
+            player.push(pickCard(cardDeck));
+            player.push(pickCard(cardDeck));
+            dealer.push(pickCard(cardDeck));
+            populateDiv(dealer, dealerCards);
+            populateDiv(player, playerCards);
+            updateValue(dealerValue, dealer, dealerCount);
+            updateValue(playerValue, player, playerCount);
+        }
+
+        function dealerRound(){
+            animateCard();
+            while (dealerValue.value < 17) dealerPick();
+            if (dealerValue.value > 21){
+                resMessage.innerText = 'You Win';
+            }
+            else if (dealerValue.value <= 21 && playerValue.value < dealerValue.value){
+                resMessage.innerText = 'Casino Wins';
+            }
+            else if (dealerValue.value < 21 && playerValue.value > dealerValue.value){
+                resMessage.innerText = 'You Win';
+            }
+            else if (playerValue.value === dealerValue.value){
+                resMessage.innerText = 'Casino Wins';
+            }
+            //playerValue.value > dealerValue.value ? resMessage.innerText = 'You Win' : resMessage.innerText = 'Casino Wins';
+            hitBtn.disabled = true;
+            standBtn.disabled = true;
+            playBtn.style.display = 'block';
+        }
+
+        function pickCard(array){
+            const index = Math.floor(Math.random() * array.length);
+            const pick = array[index];
+            array.splice(index, 1);
+            return pick;
+        }
+
+        function populateDiv(array, htmltag){
+            array.forEach(el => {
+                const split = el.split(' ');
+                const faceValue = checkRed(split[0], split[1]);
+                const div = document.createElement('div');
+                div.classList.add('card');
+                div.innerHTML = `<div class="border">${faceValue}</div>`;
+                htmltag.appendChild(div);
+            });
+
+            let move = 0;
+            let length = 100;
+            for (let i = 0; i < htmltag.children.length; i++) {
+                htmltag.children[i].style.transform = `translateX(${move}px)`;
+                htmltag.style.width = `${length}px`;
+                move += 60;
+                length += 60;
+            }
+        }
+
+        function checkRed(icon, num){
+            let output = '';
+            icon === '♥' || icon === '♦' ? output = `<span class="red">${icon} ${num}</span>` : output = `<span>${icon} ${num}</span>`;
+            return output;
+        }
+
+        function updateValue(value, array, htmltag){
+            let newArray = [];
+            let indexStr = '';
+            value.value = 0;
+            array.forEach(el => {
+                newArray = el.split(' ')
+                newArray.splice(newArray[0],1);
+                indexStr = newArray.toString();
+
+                if (indexStr === 'A'){
+                    // turn input into 11 or 1
+                    // dont forget case of 2 aces
+                    value.value += 11;
+                }
+                else if (indexStr === 'K' || indexStr === 'Q' || indexStr === 'J')
+                    value.value += 10;
+                else
+                    value.value += parseInt(indexStr);
+            });
+            htmltag.innerText = value.value;
+
+            playerValue.value < 21 ? hitBtn.disabled = false : hitBtn.disabled = true;
+
+            if (playerValue.value === 21) {
+                resMessage.innerHTML = `Black Jack! You win`;
+                hitBtn.disabled = true;
+                standBtn.disabled = true;
+                playBtn.style.display = 'block';
+            }
+            else if (playerValue.value > 21){
+                resMessage.innerHTML = `Casino wins`;
+                hitBtn.disabled = true;
+                standBtn.disabled = true;
+                playBtn.style.display = 'block';
+            }
+        }
+
+        function pickAnotherCard(){
+            player.push(pickCard(cardDeck));
+            playerCards.innerHTML = '';
+            populateDiv(player, playerCards);
+            updateValue(playerValue, player, playerCount);
+        }
+
+        function dealerPick(){
+            dealer.push(pickCard(cardDeck));
+            dealerCards.innerHTML = '';
+            populateDiv(dealer, dealerCards);
+            updateValue(dealerValue, dealer, dealerCount);
+        }
+
+        function animateCard(){
+            const cardAnim = document.querySelector('#cardAnim')
+            const backSide = document.querySelector('#backSide');
+            const content = document.querySelector('#content');
+
+            dealer.push(pickCard(cardDeck));
+            const split = dealer[1].split(' ');
+            backSide.innerHTML = checkRed(split[0], split[1]);
+            updateValue(dealerValue, dealer, dealerCount);
+            content.style.animation = 'textAppear .1s forwards';
+            cardAnim.style.animation = 'turnCard .1s forwards';
+            backSide.style.background = 'var(--gamebg)';
+        }
+
+        function restartRound(){
+            dealerValue = {value: 0};
+            playerValue = {value: 0};
+            [player, dealer] = [[],[]];
+            dealerCards.innerHTML = `
+                <div id="cardAnim" class="card">
+                    <div id="backSide" class="border">
+                        <span id="content"></span>
+                    </div>
+                </div>
+            `;
+            playerCards.innerHTML = '';
+            hitBtn.disabled = false;
+            standBtn.disabled = false;
+            playBtn.style.display = 'none';
+            resMessage.innerHTML = '';
+            startGame();
+            if (cardDeck.length <= 4) location.reload();
+        }
+        // please excuse the spaghetti code, design patterns are next
+    </script>
+</body>
+</html>
